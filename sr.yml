@@ -1,0 +1,37 @@
+name: Release Patch Notes
+
+# This means, the workflow will be trigerred and execute all down below when the repository listen the events
+# of "push" and "pull" to those branches. You can also put and '*' in order to tell the job to listen
+# all branches on the repository and not ones on specific
+on: 
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: '*'
+
+# jobs means all the 'actions' will be executed. The name of the jobs can be anything
+jobs:
+  # In case your code doesn't has a comand for "test" you can omit this job that github gives by default
+  # For this example on special, quality will be the 'action' that will perform the test, linter syntax, etc. beforore
+  # do the semantic-release in order to check the 'quality' of the code
+  quality:
+
+    # On which os will run, you can put a string like 'ubuntu-latest' or use a variable on the matrix prop
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+        # NEW: Which os will run this job in order to OK the quality of the code
+        os: [ubuntu-latest , windows-latest]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm test
